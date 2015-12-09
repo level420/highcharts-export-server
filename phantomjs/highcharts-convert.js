@@ -450,6 +450,35 @@
 				options.chart = {};
 			}
 
+
+			function traverseChartParamsCreateFunctionObject (object, key, value) {
+				if(key.substr(0,10) == '@function@') {
+					var origKey = key.substr(10);
+					try {
+						eval("var f = " + object[key] + ";");
+						if(typeof(f) == "function") {
+							object[origKey] = f;
+						}
+					}
+					catch(ex) {
+					console.log("traverseChartParamsCreateFunctionObject key: " + key + ", origKey: " + origKey + ", value: " + value + ", " + ex);
+					}
+				}
+			}
+
+			function traverseChartParams(object,func) {
+				for (var i in object) {
+					func.apply(this, [object, i, object[i]]);
+
+					if (object[i] !== null && typeof(object[i]) == "object") {
+						//going on step down in the object tree!!
+						traverseChartParams(object[i], func);
+					}
+				}
+      			}
+
+      			traverseChartParams(options, traverseChartParamsCreateFunctionObject);
+      			
 			options.chart.renderTo = $container[0];
 
 			// check if witdh is set. Order of precedence:
